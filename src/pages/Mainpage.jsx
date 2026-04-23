@@ -71,15 +71,34 @@ function Mainpage() {
 
   return (
     <section className="page-section">
-      <h2>메인 페이지</h2>
-      <p>월 수입을 저장하고 오늘 예산 안에서 지출할 수 있는지 바로 확인합니다.</p>
+      <header className="page-hero">
+        <p className="section-eyebrow">실시간 예산 대시보드</p>
+        <h2>오늘 예산 안에서 얼마나 쓸 수 있는지 바로 확인하세요</h2>
+        <p className="section-lead">
+          월 수입을 저장하면 하루 예산이 계산되고, 바로 아래에서 지출 가능 여부를
+          확인할 수 있습니다.
+        </p>
+      </header>
+
+      <div className="summary-grid">
+        <article className="summary-card summary-card--accent">
+          <span>저장된 월 수입</span>
+          <strong>{formatKoreanWon(savedMonthlyIncome)}</strong>
+        </article>
+        <article className="summary-card">
+          <span>현재 하루 예산</span>
+          <strong>{formatKoreanWon(currentDailyBudget)}</strong>
+        </article>
+      </div>
 
       <div className="page-grid">
-        <section>
-          <h3>월 수입 입력</h3>
-          <p>월 수입을 저장하면 하루 예산이 계산됩니다.</p>
+        <section className="panel">
+          <div className="panel__header">
+            <h3>월 수입 입력</h3>
+            <p>월 수입을 저장하면 오늘 기준 하루 예산이 계산됩니다.</p>
+          </div>
 
-          <form onSubmit={handleIncomeSubmit} noValidate>
+          <form className="budget-form" onSubmit={handleIncomeSubmit} noValidate>
             <label htmlFor="monthly-income">월 수입</label>
             <input
               id="monthly-income"
@@ -94,15 +113,17 @@ function Mainpage() {
           {incomeMessage ? (
             <p className={`message-box message-box--${incomeTone}`}>{incomeMessage}</p>
           ) : (
-            <p className="message-box">숫자만 입력하면 저장할 수 있습니다.</p>
+            <p className="message-box message-box--hint">숫자만 입력하면 저장할 수 있습니다.</p>
           )}
         </section>
 
-        <section>
-          <h3>실시간 소비 판단</h3>
-          <p>지출 금액을 입력하고 판정하기를 눌러 보세요.</p>
+        <section className="panel">
+          <div className="panel__header">
+            <h3>실시간 소비 판단</h3>
+            <p>지출 금액을 입력하고 판정하기를 누르면 결과가 아래 카드에 표시됩니다.</p>
+          </div>
 
-          <form onSubmit={handleSpendingSubmit} noValidate>
+          <form className="budget-form" onSubmit={handleSpendingSubmit} noValidate>
             <label htmlFor="spending-amount">지출 금액</label>
             <input
               id="spending-amount"
@@ -133,27 +154,16 @@ function Mainpage() {
               {judgment.warning ? <p>{judgment.warning}</p> : null}
             </div>
           ) : (
-            <p className="message-box">
+            <p className="message-box message-box--hint">
               지출 금액을 입력한 뒤 판정하기를 누르면 결과가 표시됩니다.
             </p>
           )}
         </section>
       </div>
 
-      <dl className="summary-list">
-        <div>
-          <dt>저장된 월 수입</dt>
-          <dd>{formatKoreanWon(savedMonthlyIncome)}</dd>
-        </div>
-        <div>
-          <dt>현재 하루 예산</dt>
-          <dd>{formatKoreanWon(currentDailyBudget)}</dd>
-        </div>
-      </dl>
-
-      <p>
-        <Link to="/budget-status">예산 상태 보기</Link>
-      </p>
+      <Link className="section-link" to="/budget-status">
+        예산 상태 보기
+      </Link>
     </section>
   );
 }
