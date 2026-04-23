@@ -27,6 +27,7 @@
 6. Risks
 
 - All task updates and final responses must be written in Korean.
+- All approval requests, confirmation requests, and progress summaries to the user must also be written in Korean.
 
 ---
 
@@ -229,6 +230,15 @@ Rules:
   * test:
 * Keep commits small and meaningful.
 * DO NOT create vague commits such as "update", "change", or "fix stuff".
+
+#### Remote Push
+
+Rules:
+
+* Use `https://github.com/chun9930/college-budget-web.git` as the default GitHub remote destination for future pushes.
+* For every meaningful completed change, create a clear Conventional Commit message and push it to GitHub.
+* Prefer isolated feature branches or worktrees for non-trivial tasks so rollback and recovery stay easy.
+* If a push, overwrite, or recovery action needs user approval, ask for that approval in Korean.
 
 ---
 
