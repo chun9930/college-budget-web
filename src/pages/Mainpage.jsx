@@ -6,12 +6,13 @@ import {
   judgeSpending,
   parseMoneyInput,
 } from '../lib/budget.js';
-import { getBudgetSettings, getMonthlyIncome } from '../lib/storage.js';
+import { getBudgetSettings, getExpenseRecords, getMonthlyIncome } from '../lib/storage.js';
 
 function Mainpage() {
   const monthlyIncome = getMonthlyIncome();
   const budgetSettings = getBudgetSettings();
-  const budgetPlan = calculateBudgetPlan({ monthlyIncome, budgetSettings });
+  const expenseRecords = getExpenseRecords();
+  const budgetPlan = calculateBudgetPlan({ monthlyIncome, budgetSettings, expenseRecords });
 
   const [spendingAmountInput, setSpendingAmountInput] = useState('');
   const [judgment, setJudgment] = useState(null);
@@ -50,12 +51,12 @@ function Mainpage() {
           <strong>{formatKoreanWon(budgetPlan.availableDailyBudget)}</strong>
         </article>
         <article className="summary-card">
-          <span>자동 계산 하루 예산</span>
-          <strong>{formatKoreanWon(budgetPlan.autoDailyBudget)}</strong>
+          <span>오늘 반영된 이월</span>
+          <strong>{formatKoreanWon(budgetPlan.carryOverAmount)}</strong>
         </article>
         <article className="summary-card">
-          <span>저장된 월 수입</span>
-          <strong>{formatKoreanWon(monthlyIncome)}</strong>
+          <span>오늘 기본 예산</span>
+          <strong>{formatKoreanWon(budgetPlan.baseDailyBudget)}</strong>
         </article>
       </div>
 
@@ -112,12 +113,16 @@ function Mainpage() {
               <dd>{budgetPlan.isManualBudgetActive ? '수동 예산 적용' : '자동 계산'}</dd>
             </div>
             <div>
-              <dt>남은 금액 이관</dt>
-              <dd>
-                {budgetPlan.carryOverEnabled
-                  ? `${formatKoreanWon(budgetPlan.carryOverAmount)} 반영`
-                  : '사용 안 함'}
-              </dd>
+              <dt>이월 상태</dt>
+              <dd>{budgetPlan.carryOverEnabled ? '사용 중' : '사용 안 함'}</dd>
+            </div>
+            <div>
+              <dt>오늘 반영된 이월</dt>
+              <dd>{formatKoreanWon(budgetPlan.carryOverAmount)}</dd>
+            </div>
+            <div>
+              <dt>오늘 사용한 지출</dt>
+              <dd>{formatKoreanWon(budgetPlan.spentToday)}</dd>
             </div>
             <div>
               <dt>목표 저축액</dt>

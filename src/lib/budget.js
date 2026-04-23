@@ -45,6 +45,20 @@ export function calculateDailyBudget(monthlyIncome, date = new Date()) {
   return Math.floor(income / remainingDays);
 }
 
+function formatDateKey(date = new Date()) {
+  const current = new Date(date);
+
+  if (Number.isNaN(current.getTime())) {
+    return '';
+  }
+
+  const year = current.getFullYear();
+  const month = String(current.getMonth() + 1).padStart(2, '0');
+  const day = String(current.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 function sanitizeBudgetAmount(value) {
   const amount = Number(value);
 
@@ -59,47 +73,118 @@ export function normalizeBudgetSettings(budgetSettings = {}) {
   return {
     manualDailyBudget: sanitizeBudgetAmount(budgetSettings.manualDailyBudget),
     carryOverEnabled: Boolean(budgetSettings.carryOverEnabled),
-    carryOverAmount: sanitizeBudgetAmount(budgetSettings.carryOverAmount),
     savingGoalAmount: sanitizeBudgetAmount(budgetSettings.savingGoalAmount),
     emergencyFundAmount: sanitizeBudgetAmount(budgetSettings.emergencyFundAmount),
   };
 }
 
+function sumExpenseAmountByDate(expenseRecords = [], dateKey = '') {
+  return expenseRecords.reduce((total, record) => {
+    if (record?.date !== dateKey) {
+      return total;
+    }
+
+    const amount = Number(record?.amount);
+    return Number.isFinite(amount) && amount > 0 ? total + amount : total;
+  }, 0);
+}
+
 export function calculateBudgetPlan({
   monthlyIncome,
   budgetSettings = {},
+  expenseRecords = [],
   date = new Date(),
 } = {}) {
   const income = sanitizeBudgetAmount(monthlyIncome);
   const settings = normalizeBudgetSettings(budgetSettings);
-  const remainingDays = getRemainingDaysInMonth(date);
+  const currentDate = new Date(date);
+
+  if (Number.isNaN(currentDate.getTime())) {
+    return {
+      monthlyIncome: income,
+      remainingDays: 0,
+      savingGoalAmount: 0,
+      emergencyFundAmount: 0,
+      spendableMonthlyIncome: 0,
+      autoDailyBudget: 0,
+      manualDailyBudget: settings.manualDailyBudget,
+      carryOverEnabled: settings.carryOverEnabled,
+      carryOverAmount: 0,
+      baseDailyBudget: 0,
+      availableDailyBudget: 0,
+      isManualBudgetActive: settings.manualDailyBudget > 0,
+      isCarryOverActive: false,
+      spentToday: 0,
+      dailySnapshots: [],
+    };
+  }
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const targetDay = currentDate.getDate();
+  const dailySnapshots = [];
   const savingGoalAmount = Math.min(settings.savingGoalAmount, income);
   const remainingAfterSavingGoal = Math.max(income - savingGoalAmount, 0);
   const emergencyFundAmount = Math.min(settings.emergencyFundAmount, remainingAfterSavingGoal);
   const spendableMonthlyIncome = Math.max(remainingAfterSavingGoal - emergencyFundAmount, 0);
-  const autoDailyBudget =
-    spendableMonthlyIncome > 0 && remainingDays > 0
-      ? Math.floor(spendableMonthlyIncome / remainingDays)
-      : 0;
   const manualDailyBudget = settings.manualDailyBudget > 0 ? settings.manualDailyBudget : 0;
-  const carryOverAmount = settings.carryOverEnabled ? settings.carryOverAmount : 0;
-  const baseDailyBudget = manualDailyBudget > 0 ? manualDailyBudget : autoDailyBudget;
-  const availableDailyBudget = baseDailyBudget + carryOverAmount;
+  let carryIn = 0;
+
+  for (let day = 1; day <= targetDay; day += 1) {
+    const currentDayDate = new Date(year, month, day);
+    const currentDateKey = formatDateKey(currentDayDate);
+    const remainingDays = getRemainingDaysInMonth(currentDayDate);
+    const autoDailyBudget =
+      spendableMonthlyIncome > 0 && remainingDays > 0
+        ? Math.floor(spendableMonthlyIncome / remainingDays)
+        : 0;
+    const baseDailyBudget = manualDailyBudget > 0 ? manualDailyBudget : autoDailyBudget;
+    const availableBeforeSpent = baseDailyBudget + (settings.carryOverEnabled ? carryIn : 0);
+    const spentAmount = sumExpenseAmountByDate(expenseRecords, currentDateKey);
+    const carryOut = settings.carryOverEnabled
+      ? Math.max(availableBeforeSpent - spentAmount, 0)
+      : 0;
+
+    dailySnapshots.push({
+      date: currentDateKey,
+      remainingDays,
+      autoDailyBudget,
+      baseDailyBudget,
+      carryIn,
+      spentAmount,
+      availableDailyBudget: availableBeforeSpent,
+      carryOut,
+    });
+
+    carryIn = carryOut;
+  }
+
+  const todaySnapshot = dailySnapshots[dailySnapshots.length - 1] ?? {
+    remainingDays: 0,
+    autoDailyBudget: 0,
+    baseDailyBudget: manualDailyBudget,
+    carryIn: 0,
+    spentAmount: 0,
+    availableDailyBudget: 0,
+    carryOut: 0,
+  };
 
   return {
     monthlyIncome: income,
-    remainingDays,
+    remainingDays: todaySnapshot.remainingDays,
     savingGoalAmount,
     emergencyFundAmount,
     spendableMonthlyIncome,
-    autoDailyBudget,
+    autoDailyBudget: todaySnapshot.autoDailyBudget,
     manualDailyBudget,
     carryOverEnabled: settings.carryOverEnabled,
-    carryOverAmount,
-    baseDailyBudget,
-    availableDailyBudget,
+    carryOverAmount: todaySnapshot.carryIn,
+    baseDailyBudget: todaySnapshot.baseDailyBudget,
+    availableDailyBudget: todaySnapshot.availableDailyBudget,
     isManualBudgetActive: manualDailyBudget > 0,
-    isCarryOverActive: settings.carryOverEnabled && carryOverAmount > 0,
+    isCarryOverActive: settings.carryOverEnabled && todaySnapshot.carryIn > 0,
+    spentToday: todaySnapshot.spentAmount,
+    dailySnapshots,
   };
 }
 

@@ -28,7 +28,6 @@ function sanitizeBudgetSettings(budgetSettings) {
   return {
     manualDailyBudget: sanitizeNumber(budgetSettings?.manualDailyBudget),
     carryOverEnabled: Boolean(budgetSettings?.carryOverEnabled),
-    carryOverAmount: sanitizeNumber(budgetSettings?.carryOverAmount),
     savingGoalAmount: sanitizeNumber(budgetSettings?.savingGoalAmount),
     emergencyFundAmount: sanitizeNumber(budgetSettings?.emergencyFundAmount),
   };

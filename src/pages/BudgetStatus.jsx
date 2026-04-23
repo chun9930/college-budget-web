@@ -6,8 +6,8 @@ import {
   parseMoneyInput,
 } from '../lib/budget.js';
 import {
-  getBudgetAmount,
   getBudgetSettings,
+  getExpenseRecords,
   getMonthlyIncome,
   setBudgetAmount,
   setBudgetSettings,
@@ -27,10 +27,10 @@ function parseOptionalMoneyInput(value) {
 function BudgetStatus() {
   const savedMonthlyIncome = getMonthlyIncome();
   const savedBudgetSettings = getBudgetSettings();
-  const savedBudgetAmount = getBudgetAmount();
+  const expenseRecords = getExpenseRecords();
+
   const [displayMonthlyIncome, setDisplayMonthlyIncome] = useState(savedMonthlyIncome);
   const [displayBudgetSettings, setDisplayBudgetSettings] = useState(savedBudgetSettings);
-  const [displayBudgetAmount, setDisplayBudgetAmount] = useState(savedBudgetAmount);
 
   const [monthlyIncomeInput, setMonthlyIncomeInput] = useState(
     savedMonthlyIncome > 0 ? String(savedMonthlyIncome) : '',
@@ -39,9 +39,6 @@ function BudgetStatus() {
     savedBudgetSettings.manualDailyBudget > 0 ? String(savedBudgetSettings.manualDailyBudget) : '',
   );
   const [carryOverEnabled, setCarryOverEnabled] = useState(savedBudgetSettings.carryOverEnabled);
-  const [carryOverAmountInput, setCarryOverAmountInput] = useState(
-    savedBudgetSettings.carryOverAmount > 0 ? String(savedBudgetSettings.carryOverAmount) : '',
-  );
   const [savingGoalAmountInput, setSavingGoalAmountInput] = useState(
     savedBudgetSettings.savingGoalAmount > 0 ? String(savedBudgetSettings.savingGoalAmount) : '',
   );
@@ -54,6 +51,7 @@ function BudgetStatus() {
   const currentPlan = calculateBudgetPlan({
     monthlyIncome: displayMonthlyIncome,
     budgetSettings: displayBudgetSettings,
+    expenseRecords,
   });
 
   function handleSubmit(event) {
@@ -95,13 +93,6 @@ function BudgetStatus() {
       }
     }
 
-    const parsedCarryOverAmount = carryOverEnabled ? parseOptionalMoneyInput(carryOverAmountInput) : 0;
-    if (parsedCarryOverAmount === null) {
-      setMessage('남은 금액 이관 금액은 숫자로 입력해 주세요.');
-      setMessageTone('error');
-      return;
-    }
-
     const parsedSavingGoalAmount = parseOptionalMoneyInput(savingGoalAmountInput);
     if (parsedSavingGoalAmount === null) {
       setMessage('목표 저축액은 숫자로 입력해 주세요.');
@@ -119,13 +110,13 @@ function BudgetStatus() {
     const nextBudgetSettings = {
       manualDailyBudget: parsedManualDailyBudget || 0,
       carryOverEnabled,
-      carryOverAmount: carryOverEnabled ? parsedCarryOverAmount : 0,
       savingGoalAmount: parsedSavingGoalAmount || 0,
       emergencyFundAmount: parsedEmergencyFundAmount || 0,
     };
     const nextPlan = calculateBudgetPlan({
       monthlyIncome: parsedMonthlyIncome,
       budgetSettings: nextBudgetSettings,
+      expenseRecords,
     });
 
     setMonthlyIncome(parsedMonthlyIncome);
@@ -133,28 +124,18 @@ function BudgetStatus() {
     setBudgetAmount(nextPlan.availableDailyBudget);
     setDisplayMonthlyIncome(parsedMonthlyIncome);
     setDisplayBudgetSettings(nextBudgetSettings);
-    setDisplayBudgetAmount(nextPlan.availableDailyBudget);
     setMessage('예산 설정이 저장되었습니다.');
     setMessageTone('success');
-  }
-
-  function handleCarryOverChange(event) {
-    const nextEnabled = event.target.checked;
-    setCarryOverEnabled(nextEnabled);
-
-    if (!nextEnabled) {
-      setCarryOverAmountInput('');
-    }
   }
 
   return (
     <section className="page-section">
       <header className="page-hero">
         <p className="section-eyebrow">예산 상태 / 설정</p>
-        <h2>월 수입과 예산 규칙을 한 곳에서 관리하세요</h2>
+        <h2>월 수입과 이월 규칙을 한 곳에서 관리하세요</h2>
         <p className="section-lead">
-          이 화면에서 월 수입, 수동 예산, 남은 금액 이관, 목표 저축, 비상금 제외를 함께
-          저장하고, 저장된 값은 바로 소비 판단에 반영됩니다.
+          이 화면에서 월 수입, 수동 예산, 남은 금액 이월, 목표 저축, 비상금 제외를 함께
+          저장하고, 저장된 값은 지출 기록을 기준으로 오늘 예산에 반영됩니다.
         </p>
       </header>
 
@@ -165,7 +146,7 @@ function BudgetStatus() {
         </article>
         <article className="summary-card">
           <span>현재 사용 가능 금액</span>
-          <strong>{formatKoreanWon(displayBudgetAmount || currentPlan.availableDailyBudget)}</strong>
+          <strong>{formatKoreanWon(currentPlan.availableDailyBudget)}</strong>
         </article>
         <article className="summary-card">
           <span>이번 달 남은 일수</span>
@@ -212,19 +193,13 @@ function BudgetStatus() {
                   id="carry-over-enabled"
                   type="checkbox"
                   checked={carryOverEnabled}
-                  onChange={handleCarryOverChange}
+                  onChange={(event) => setCarryOverEnabled(event.target.checked)}
                 />
-                남은 금액 이관 사용
+                남은 금액 이월 사용
               </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={carryOverAmountInput}
-                onChange={(event) => setCarryOverAmountInput(event.target.value)}
-                placeholder="예: 5000"
-                disabled={!carryOverEnabled}
-              />
-              <p className="field-note">이관 금액은 다음 날 사용 가능 금액에 더해집니다.</p>
+              <p className="field-note">
+                이월이 켜져 있으면 전날 실제로 남은 금액이 오늘 예산에 자동 반영됩니다.
+              </p>
             </div>
 
             <div className="form-block form-block--two-up">
@@ -268,7 +243,7 @@ function BudgetStatus() {
         <section className="panel">
           <div className="panel__header">
             <h3>현재 계산 결과</h3>
-            <p>저장된 규칙을 기준으로 오늘 사용 가능한 금액을 계산합니다.</p>
+            <p>저장된 규칙과 지출 기록을 기준으로 오늘 사용 가능한 금액을 계산합니다.</p>
           </div>
 
           <dl className="summary-list">
@@ -281,20 +256,16 @@ function BudgetStatus() {
               <dd>{formatKoreanWon(currentPlan.manualDailyBudget)}</dd>
             </div>
             <div>
-              <dt>남은 금액 이관</dt>
-              <dd>
-                {currentPlan.carryOverEnabled
-                  ? `${formatKoreanWon(currentPlan.carryOverAmount)} 반영`
-                  : '사용 안 함'}
-              </dd>
+              <dt>이월 상태</dt>
+              <dd>{currentPlan.carryOverEnabled ? '사용 중' : '사용 안 함'}</dd>
             </div>
             <div>
-              <dt>목표 저축액</dt>
-              <dd>{formatKoreanWon(currentPlan.savingGoalAmount)}</dd>
+              <dt>오늘 반영된 이월</dt>
+              <dd>{formatKoreanWon(currentPlan.carryOverAmount)}</dd>
             </div>
             <div>
-              <dt>비상금 제외</dt>
-              <dd>{formatKoreanWon(currentPlan.emergencyFundAmount)}</dd>
+              <dt>오늘 사용한 지출</dt>
+              <dd>{formatKoreanWon(currentPlan.spentToday)}</dd>
             </div>
             <div>
               <dt>최종 사용 가능 금액</dt>
@@ -304,7 +275,7 @@ function BudgetStatus() {
 
           <p className="message-box message-box--hint">
             자동 계산은 월 수입에서 목표 저축액과 비상금을 먼저 제외한 뒤 남은 금액을 남은
-            일수로 나눠 계산합니다. 수동 하루 예산이 있으면 그 값이 우선됩니다.
+            일수로 나눠 계산합니다. 이월이 켜져 있으면 전날 남은 금액이 오늘 예산에 더해집니다.
           </p>
         </section>
       </div>
