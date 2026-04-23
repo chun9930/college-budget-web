@@ -3,7 +3,13 @@ import { dummyExpenseTemplates } from '../data/dummyExpenseTemplates.js';
 import { STORAGE_KEYS } from './storageKeys.js';
 
 function readValue(key, defaultValue) {
-  const storedValue = window.localStorage.getItem(key);
+  const storage = typeof window !== 'undefined' ? window.localStorage : null;
+
+  if (!storage) {
+    return defaultValue;
+  }
+
+  const storedValue = storage.getItem(key);
 
   if (storedValue === null) {
     return defaultValue;
@@ -17,7 +23,13 @@ function readValue(key, defaultValue) {
 }
 
 function writeValue(key, value) {
-  window.localStorage.setItem(key, JSON.stringify(value));
+  const storage = typeof window !== 'undefined' ? window.localStorage : null;
+
+  if (!storage) {
+    return;
+  }
+
+  storage.setItem(key, JSON.stringify(value));
 }
 
 function sanitizeNumber(value) {
@@ -31,6 +43,20 @@ function sanitizeBudgetSettings(budgetSettings) {
     carryOverEnabled: Boolean(budgetSettings?.carryOverEnabled),
     savingGoalAmount: sanitizeNumber(budgetSettings?.savingGoalAmount),
     emergencyFundAmount: sanitizeNumber(budgetSettings?.emergencyFundAmount),
+  };
+}
+
+function sanitizeBudgetAlertState(budgetAlertState) {
+  return {
+    dismissedDailySignature:
+      typeof budgetAlertState?.dismissedDailySignature === 'string'
+        ? budgetAlertState.dismissedDailySignature
+        : '',
+    dismissedMonthlySignature:
+      typeof budgetAlertState?.dismissedMonthlySignature === 'string'
+        ? budgetAlertState.dismissedMonthlySignature
+        : '',
+    dismissedAt: typeof budgetAlertState?.dismissedAt === 'string' ? budgetAlertState.dismissedAt : '',
   };
 }
 
@@ -82,6 +108,63 @@ export function getBudgetSettings() {
 
 export function setBudgetSettings(budgetSettings) {
   writeValue(STORAGE_KEYS.budgetSettings, sanitizeBudgetSettings(budgetSettings));
+}
+
+export function getBudgetAlertState() {
+  return readValue(STORAGE_KEYS.budgetAlertState, sanitizeBudgetAlertState());
+}
+
+export function setBudgetAlertState(budgetAlertState) {
+  writeValue(STORAGE_KEYS.budgetAlertState, sanitizeBudgetAlertState(budgetAlertState));
+}
+
+export function acknowledgeBudgetAlert(type, signature) {
+  const currentState = getBudgetAlertState();
+  const nextState = {
+    ...currentState,
+    dismissedAt: new Date().toISOString(),
+  };
+
+  if (type === 'daily') {
+    nextState.dismissedDailySignature = typeof signature === 'string' ? signature : '';
+  }
+
+  if (type === 'monthly') {
+    nextState.dismissedMonthlySignature = typeof signature === 'string' ? signature : '';
+  }
+
+  setBudgetAlertState(nextState);
+  return nextState;
+}
+
+export function clearBudgetAlertState(type) {
+  const currentState = getBudgetAlertState();
+
+  if (type === 'daily') {
+    const nextState = {
+      ...currentState,
+      dismissedDailySignature: '',
+      dismissedAt: new Date().toISOString(),
+    };
+
+    setBudgetAlertState(nextState);
+    return nextState;
+  }
+
+  if (type === 'monthly') {
+    const nextState = {
+      ...currentState,
+      dismissedMonthlySignature: '',
+      dismissedAt: new Date().toISOString(),
+    };
+
+    setBudgetAlertState(nextState);
+    return nextState;
+  }
+
+  const nextState = sanitizeBudgetAlertState();
+  setBudgetAlertState(nextState);
+  return nextState;
 }
 
 export function getExpenseRecords() {

@@ -100,6 +100,19 @@ function sumExpenseAmountByDate(expenseRecords = [], dateKey = '') {
   }, 0);
 }
 
+function sumExpenseAmountByMonth(expenseRecords = [], year = 0, monthIndex = 0) {
+  const monthPrefix = `${year}-${String(monthIndex + 1).padStart(2, '0')}-`;
+
+  return expenseRecords.reduce((total, record) => {
+    if (typeof record?.date !== 'string' || !record.date.startsWith(monthPrefix)) {
+      return total;
+    }
+
+    const amount = Number(record?.amount);
+    return Number.isFinite(amount) && amount > 0 ? total + amount : total;
+  }, 0);
+}
+
 function getSpendingStage(spendingAmount, dailyBudget) {
   const spending = Number(spendingAmount);
   const budget = Number(dailyBudget);
@@ -183,6 +196,45 @@ function getSpendingStage(spendingAmount, dailyBudget) {
   };
 }
 
+function buildBudgetAlert({
+  type,
+  title,
+  message,
+  detail,
+  currentAmount,
+  limitAmount,
+  signature,
+  resetLabel,
+}) {
+  return {
+    type,
+    title,
+    message,
+    detail,
+    currentAmount,
+    limitAmount,
+    signature,
+    resetLabel,
+    tone: 'error',
+  };
+}
+
+export function isBudgetAlertDismissed(alertState = {}, alert = {}) {
+  if (alert?.type === 'daily') {
+    return alertState?.dismissedDailySignature === alert?.signature;
+  }
+
+  if (alert?.type === 'monthly') {
+    return alertState?.dismissedMonthlySignature === alert?.signature;
+  }
+
+  return false;
+}
+
+export function getVisibleBudgetAlerts(alerts = [], alertState = {}) {
+  return alerts.filter((alert) => !isBudgetAlertDismissed(alertState, alert));
+}
+
 export function calculateBudgetPlan({
   monthlyIncome,
   budgetSettings = {},
@@ -206,6 +258,9 @@ export function calculateBudgetPlan({
       carryOverAmount: 0,
       baseDailyBudget: 0,
       availableDailyBudget: 0,
+      monthlySpent: 0,
+      monthlyBudgetLimit: 0,
+      monthlyRemainingBudget: 0,
       isManualBudgetActive: settings.manualDailyBudget > 0,
       isCarryOverActive: false,
       spentToday: 0,
@@ -223,6 +278,7 @@ export function calculateBudgetPlan({
   const emergencyFundAmount = Math.min(settings.emergencyFundAmount, remainingAfterSavingGoal);
   const spendableMonthlyIncome = Math.max(remainingAfterSavingGoal - emergencyFundAmount, 0);
   const manualDailyBudget = settings.manualDailyBudget > 0 ? settings.manualDailyBudget : 0;
+  const monthlySpent = sumExpenseAmountByMonth(expenseRecords, year, month);
   let carryIn = 0;
 
   for (let day = 1; day <= targetDay; day += 1) {
@@ -276,11 +332,95 @@ export function calculateBudgetPlan({
     carryOverAmount: todaySnapshot.carryIn,
     baseDailyBudget: todaySnapshot.baseDailyBudget,
     availableDailyBudget: todaySnapshot.availableDailyBudget,
+    monthlySpent,
+    monthlyBudgetLimit: spendableMonthlyIncome,
+    monthlyRemainingBudget: Math.max(spendableMonthlyIncome - monthlySpent, 0),
     isManualBudgetActive: manualDailyBudget > 0,
     isCarryOverActive: settings.carryOverEnabled && todaySnapshot.carryIn > 0,
     spentToday: todaySnapshot.spentAmount,
     dailySnapshots,
     spendingStage: getSpendingStage(todaySnapshot.spentAmount, todaySnapshot.availableDailyBudget),
+  };
+}
+
+export function calculateBudgetAlerts({
+  monthlyIncome,
+  budgetSettings = {},
+  expenseRecords = [],
+  date = new Date(),
+  budgetPlan,
+} = {}) {
+  const currentPlan =
+    budgetPlan ??
+    calculateBudgetPlan({
+      monthlyIncome,
+      budgetSettings,
+      expenseRecords,
+      date,
+    });
+  const currentDate = new Date(date);
+
+  if (Number.isNaN(currentDate.getTime())) {
+    return {
+      alerts: [],
+      monthlySpent: 0,
+      monthlyLimit: currentPlan.monthlyBudgetLimit ?? 0,
+      dailyAlert: null,
+      monthlyAlert: null,
+    };
+  }
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const dateKey = formatDateKey(currentDate);
+  const monthlySpent = currentPlan.monthlySpent ?? sumExpenseAmountByMonth(expenseRecords, year, month);
+  const monthlyLimit = currentPlan.monthlyBudgetLimit ?? 0;
+
+  const alerts = [];
+
+  const dailyAlert =
+    currentPlan.spendingStage.status === 'over'
+      ? buildBudgetAlert({
+          type: 'daily',
+          title: '하루 예산 초과',
+          message: '오늘 사용 가능 금액을 넘었습니다.',
+          detail: `오늘 사용한 금액 ${formatKoreanWon(currentPlan.spentToday)} / 오늘 사용 가능 금액 ${formatKoreanWon(currentPlan.availableDailyBudget)}`,
+          currentAmount: currentPlan.spentToday,
+          limitAmount: currentPlan.availableDailyBudget,
+          signature: `daily:${dateKey}:${currentPlan.availableDailyBudget}:${currentPlan.spentToday}`,
+          resetLabel: '하루 초과 기준 재설정',
+        })
+      : null;
+
+  const monthlyAlert =
+    monthlySpent > monthlyLimit
+      ? buildBudgetAlert({
+          type: 'monthly',
+          title: '월 예산 초과',
+          message: '이번 달 누적 지출이 사용 가능 월 예산을 넘었습니다.',
+          detail: `이번 달 사용한 금액 ${formatKoreanWon(monthlySpent)} / 이번 달 사용 가능 금액 ${formatKoreanWon(monthlyLimit)}`,
+          currentAmount: monthlySpent,
+          limitAmount: monthlyLimit,
+          signature: `monthly:${monthKey}:${monthlySpent}:${monthlyLimit}`,
+          resetLabel: '월 초과 기준 재설정',
+        })
+      : null;
+
+  if (dailyAlert) {
+    alerts.push(dailyAlert);
+  }
+
+  if (monthlyAlert) {
+    alerts.push(monthlyAlert);
+  }
+
+  return {
+    alerts,
+    monthlySpent,
+    monthlyLimit,
+    dailyAlert,
+    monthlyAlert,
   };
 }
 

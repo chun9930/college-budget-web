@@ -239,6 +239,39 @@
   margin-bottom: 4px;
 }
 
+.alert-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.budget-alert {
+  display: grid;
+  gap: 10px;
+}
+
+.budget-alert__header,
+.budget-alert__footer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.budget-alert__header span {
+  color: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.budget-alert__footer {
+  padding-top: 4px;
+}
+
+.budget-alert__footer span {
+  font-weight: 700;
+}
+
 .summary-grid,
 .stats-overview {
   display: grid;

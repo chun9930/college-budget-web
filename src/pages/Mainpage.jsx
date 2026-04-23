@@ -2,20 +2,37 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   calculateBudgetPlan,
+  calculateBudgetAlerts,
   formatKoreanWon,
+  getVisibleBudgetAlerts,
   judgeSpending,
   parseMoneyInput,
 } from '../lib/budget.js';
-import { getBudgetSettings, getExpenseRecords, getMonthlyIncome } from '../lib/storage.js';
+import {
+  acknowledgeBudgetAlert,
+  getBudgetAlertState,
+  getBudgetSettings,
+  getExpenseRecords,
+  getMonthlyIncome,
+} from '../lib/storage.js';
 
 function Mainpage() {
   const monthlyIncome = getMonthlyIncome();
   const budgetSettings = getBudgetSettings();
   const expenseRecords = getExpenseRecords();
   const budgetPlan = calculateBudgetPlan({ monthlyIncome, budgetSettings, expenseRecords });
+  const budgetAlerts = calculateBudgetAlerts({
+    monthlyIncome,
+    budgetSettings,
+    expenseRecords,
+    budgetPlan,
+  });
+  const budgetAlertState = getBudgetAlertState();
+  const visibleBudgetAlerts = getVisibleBudgetAlerts(budgetAlerts.alerts, budgetAlertState);
 
   const [spendingAmountInput, setSpendingAmountInput] = useState('');
   const [judgment, setJudgment] = useState(null);
+  const [, setAlertTick] = useState(0);
 
   function handleSpendingSubmit(event) {
     event.preventDefault();
@@ -50,6 +67,11 @@ function Mainpage() {
     return 'message-box--stable';
   }
 
+  function handleResetAlert(alert) {
+    acknowledgeBudgetAlert(alert.type, alert.signature);
+    setAlertTick((current) => current + 1);
+  }
+
   return (
     <section className="page-section">
       <header className="page-hero">
@@ -60,6 +82,27 @@ function Mainpage() {
           지출 가능 여부만 빠르게 판단합니다.
         </p>
       </header>
+
+      {visibleBudgetAlerts.length > 0 ? (
+        <section className="alert-stack">
+          {visibleBudgetAlerts.map((alert) => (
+            <article className="message-box message-box--error budget-alert" key={alert.signature}>
+              <div className="budget-alert__header">
+                <strong>{alert.title}</strong>
+                <span>{alert.type === 'daily' ? '하루 기준' : '월 기준'}</span>
+              </div>
+              <p>{alert.message}</p>
+              <p>{alert.detail}</p>
+              <div className="budget-alert__footer">
+                <span>{formatKoreanWon(alert.currentAmount)} / {formatKoreanWon(alert.limitAmount)}</span>
+                <button type="button" className="secondary-button" onClick={() => handleResetAlert(alert)}>
+                  {alert.resetLabel}
+                </button>
+              </div>
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       <div className="summary-grid">
         <article className="summary-card summary-card--accent">
