@@ -24,6 +24,16 @@ function sanitizeNumber(value) {
   return Number.isFinite(numberValue) && numberValue >= 0 ? numberValue : 0;
 }
 
+function sanitizeBudgetSettings(budgetSettings) {
+  return {
+    manualDailyBudget: sanitizeNumber(budgetSettings?.manualDailyBudget),
+    carryOverEnabled: Boolean(budgetSettings?.carryOverEnabled),
+    carryOverAmount: sanitizeNumber(budgetSettings?.carryOverAmount),
+    savingGoalAmount: sanitizeNumber(budgetSettings?.savingGoalAmount),
+    emergencyFundAmount: sanitizeNumber(budgetSettings?.emergencyFundAmount),
+  };
+}
+
 export function getMonthlyIncome() {
   return readValue(STORAGE_KEYS.monthlyIncome, 0);
 }
@@ -38,6 +48,14 @@ export function getBudgetAmount() {
 
 export function setBudgetAmount(budgetAmount) {
   writeValue(STORAGE_KEYS.budgetAmount, sanitizeNumber(budgetAmount));
+}
+
+export function getBudgetSettings() {
+  return readValue(STORAGE_KEYS.budgetSettings, sanitizeBudgetSettings());
+}
+
+export function setBudgetSettings(budgetSettings) {
+  writeValue(STORAGE_KEYS.budgetSettings, sanitizeBudgetSettings(budgetSettings));
 }
 
 export function getExpenseRecords() {

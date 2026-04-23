@@ -83,11 +83,46 @@
   gap: 10px;
 }
 
+.budget-form--stacked {
+  gap: 16px;
+}
+
 .budget-form label,
 .expense-form label,
 .auth-form label {
   color: #334155;
   font-weight: 700;
+}
+
+.form-block {
+  display: grid;
+  gap: 10px;
+}
+
+.form-block--two-up {
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field-note {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 22px;
+}
+
+.toggle-row input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #4f46e5;
 }
 
 .budget-form input,
@@ -114,6 +149,12 @@
 .auth-form input:focus {
   outline: 3px solid rgba(99, 102, 241, 0.16);
   border-color: #6366f1;
+}
+
+.budget-form input:disabled {
+  background: rgba(241, 245, 249, 0.96);
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 .budget-form button,
@@ -307,5 +348,9 @@
 @media (max-width: 759px) {
   .panel {
     padding: 18px;
+  }
+
+  .form-block--two-up {
+    grid-template-columns: 1fr;
   }
 }
