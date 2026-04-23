@@ -69,6 +69,17 @@ function sanitizeBudgetAmount(value) {
   return Math.round(amount);
 }
 
+function createEmptySpendingStage() {
+  return {
+    status: 'stable',
+    title: '안정',
+    message: '현재 소비는 예산 안에서 여유 있게 관리되고 있습니다.',
+    warning: '',
+    usageRate: 0,
+    remainingBudget: 0,
+  };
+}
+
 export function normalizeBudgetSettings(budgetSettings = {}) {
   return {
     manualDailyBudget: sanitizeBudgetAmount(budgetSettings.manualDailyBudget),
@@ -87,6 +98,89 @@ function sumExpenseAmountByDate(expenseRecords = [], dateKey = '') {
     const amount = Number(record?.amount);
     return Number.isFinite(amount) && amount > 0 ? total + amount : total;
   }, 0);
+}
+
+function getSpendingStage(spendingAmount, dailyBudget) {
+  const spending = Number(spendingAmount);
+  const budget = Number(dailyBudget);
+
+  if (spendingAmount === null || spendingAmount === undefined || !Number.isFinite(spending)) {
+    return {
+      status: 'invalid',
+      title: '지출 금액을 확인해 주세요.',
+      message: '지출 금액은 숫자로 입력해 주세요.',
+      warning: '',
+      usageRate: 0,
+      remainingBudget: Number.isFinite(budget) ? Math.max(budget, 0) : 0,
+    };
+  }
+
+  if (spending <= 0) {
+    return {
+      status: 'invalid',
+      title: '지출 금액을 확인해 주세요.',
+      message: '지출 금액은 0보다 큰 숫자로 입력해 주세요.',
+      warning: '',
+      usageRate: 0,
+      remainingBudget: Number.isFinite(budget) ? Math.max(budget, 0) : 0,
+    };
+  }
+
+  if (!Number.isFinite(budget) || budget <= 0) {
+    return {
+      status: 'over',
+      title: '초과',
+      message: '현재 사용할 수 있는 오늘 예산이 없습니다.',
+      warning: '경고: 월 수입과 이월 규칙을 먼저 저장해 주세요.',
+      usageRate: 1,
+      remainingBudget: 0,
+    };
+  }
+
+  const usageRate = spending / budget;
+  const remainingBudget = Math.max(budget - spending, 0);
+
+  if (usageRate >= 1) {
+    return {
+      status: 'over',
+      title: '초과',
+      message: '입력한 금액이 오늘 최종 사용 가능 금액을 넘었습니다.',
+      warning: '경고: 오늘 예산을 초과했습니다.',
+      usageRate,
+      remainingBudget,
+    };
+  }
+
+  if (usageRate >= 0.75) {
+    return {
+      status: 'warning',
+      title: '경고',
+      message: '오늘 예산의 대부분을 사용했습니다. 추가 소비를 조심하세요.',
+      warning: '주의: 예산이 거의 다 사용되었습니다.',
+      usageRate,
+      remainingBudget,
+    };
+  }
+
+  if (usageRate >= 0.5) {
+    return {
+      status: 'watch',
+      title: '주의',
+      message: '오늘 예산의 절반 이상을 사용했습니다.',
+      warning: '주의: 남은 금액을 확인하고 소비를 조절해 주세요.',
+      usageRate,
+      remainingBudget,
+    };
+  }
+
+  return {
+    status: 'stable',
+    title: '안정',
+    message: '현재 소비는 예산 안에서 여유 있게 관리되고 있습니다.',
+    warning: '',
+    usageRate,
+    remainingBudget,
+  };
 }
 
 export function calculateBudgetPlan({
@@ -116,6 +210,7 @@ export function calculateBudgetPlan({
       isCarryOverActive: false,
       spentToday: 0,
       dailySnapshots: [],
+      spendingStage: createEmptySpendingStage(),
     };
   }
 
@@ -185,53 +280,45 @@ export function calculateBudgetPlan({
     isCarryOverActive: settings.carryOverEnabled && todaySnapshot.carryIn > 0,
     spentToday: todaySnapshot.spentAmount,
     dailySnapshots,
+    spendingStage: getSpendingStage(todaySnapshot.spentAmount, todaySnapshot.availableDailyBudget),
   };
 }
 
 export function judgeSpending({ spendingAmount, dailyBudget }) {
-  const spending = Number(spendingAmount);
-  const budget = Number(dailyBudget);
+  const stage = getSpendingStage(spendingAmount, dailyBudget);
 
-  if (spendingAmount === null || spendingAmount === undefined || !Number.isFinite(spending)) {
+  if (stage.status === 'stable') {
     return {
-      status: 'invalid',
-      title: '지출 금액을 확인해 주세요.',
-      message: '지출 금액은 숫자로 입력해 주세요.',
+      ...stage,
+      title: '안정',
+      message: '입력한 금액은 현재 예산 안에 있습니다.',
       warning: '',
     };
   }
 
-  if (spending <= 0) {
+  if (stage.status === 'watch') {
     return {
-      status: 'invalid',
-      title: '지출 금액을 확인해 주세요.',
-      message: '지출 금액은 0보다 큰 숫자로 입력해 주세요.',
-      warning: '',
+      ...stage,
+      title: '주의',
+      message: '입력한 금액은 예산의 절반을 넘었습니다.',
     };
   }
 
-  if (!Number.isFinite(budget) || budget <= 0) {
+  if (stage.status === 'warning') {
     return {
-      status: 'over',
-      title: '예산 초과',
-      message: '현재 사용할 수 있는 하루 예산이 없습니다.',
-      warning: '경고: 월 수입을 먼저 입력해 예산을 계산해 주세요.',
+      ...stage,
+      title: '경고',
+      message: '입력한 금액이 예산에 거의 다가왔습니다.',
     };
   }
 
-  if (spending > budget) {
+  if (stage.status === 'over') {
     return {
-      status: 'over',
-      title: '예산 초과',
-      message: '입력한 금액이 오늘 예산을 넘었습니다.',
-      warning: '경고: 오늘 예산을 초과했습니다.',
+      ...stage,
+      title: '초과',
+      message: '입력한 금액이 오늘 최종 사용 가능 금액을 넘었습니다.',
     };
   }
 
-  return {
-    status: 'within',
-    title: '예산 안에서 사용할 수 있습니다.',
-    message: '입력한 금액은 현재 예산 안에 있습니다.',
-    warning: '',
-  };
+  return stage;
 }

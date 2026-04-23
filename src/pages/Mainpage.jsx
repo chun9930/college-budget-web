@@ -34,6 +34,22 @@ function Mainpage() {
     setJudgment(null);
   }
 
+  function getJudgmentTone(status) {
+    if (status === 'over' || status === 'invalid') {
+      return 'message-box--error';
+    }
+
+    if (status === 'warning') {
+      return 'message-box--warning';
+    }
+
+    if (status === 'watch') {
+      return 'message-box--watch';
+    }
+
+    return 'message-box--stable';
+  }
+
   return (
     <section className="page-section">
       <header className="page-hero">
@@ -51,8 +67,8 @@ function Mainpage() {
           <strong>{formatKoreanWon(budgetPlan.availableDailyBudget)}</strong>
         </article>
         <article className="summary-card">
-          <span>오늘 반영된 이월</span>
-          <strong>{formatKoreanWon(budgetPlan.carryOverAmount)}</strong>
+          <span>현재 경고 단계</span>
+          <strong>{budgetPlan.spendingStage.title}</strong>
         </article>
         <article className="summary-card">
           <span>오늘 기본 예산</span>
@@ -81,17 +97,15 @@ function Mainpage() {
           </form>
 
           {judgment ? (
-            <div
-              className={`message-box ${
-                judgment.status === 'over'
-                  ? 'message-box--warning'
-                  : judgment.status === 'invalid'
-                    ? 'message-box--error'
-                    : 'message-box--success'
-              }`}
-            >
+            <div className={`message-box ${getJudgmentTone(judgment.status)}`}>
               <strong>{judgment.title}</strong>
               <p>{judgment.message}</p>
+              {judgment.usageRate !== undefined ? (
+                <p>사용 비율: {(judgment.usageRate * 100).toFixed(0)}%</p>
+              ) : null}
+              {judgment.remainingBudget !== undefined ? (
+                <p>남은 금액: {formatKoreanWon(judgment.remainingBudget)}</p>
+              ) : null}
               {judgment.warning ? <p>{judgment.warning}</p> : null}
             </div>
           ) : (
@@ -135,8 +149,8 @@ function Mainpage() {
           </dl>
 
           <p className="message-box message-box--hint">
-            예산 설정은 예산 상태 화면에서 월 수입, 수동 예산, 이관, 저축 목표, 비상금
-            제외를 함께 관리할 수 있습니다.
+            판정 기준은 오늘 최종 사용 가능 금액의 비율입니다. 안정은 50% 미만, 주의는 50%
+            이상 75% 미만, 경고는 75% 이상 100% 미만, 초과는 100% 이상입니다.
           </p>
         </section>
       </div>

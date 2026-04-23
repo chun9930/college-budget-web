@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   calculateBudgetPlan,
   formatKoreanWon,
-  getRemainingDaysInMonth,
   parseMoneyInput,
 } from '../lib/budget.js';
 import {
@@ -149,8 +148,8 @@ function BudgetStatus() {
           <strong>{formatKoreanWon(currentPlan.availableDailyBudget)}</strong>
         </article>
         <article className="summary-card">
-          <span>이번 달 남은 일수</span>
-          <strong>{getRemainingDaysInMonth()}일</strong>
+          <span>현재 경고 단계</span>
+          <strong>{currentPlan.spendingStage.title}</strong>
         </article>
       </div>
 
@@ -271,11 +270,16 @@ function BudgetStatus() {
               <dt>최종 사용 가능 금액</dt>
               <dd>{formatKoreanWon(currentPlan.availableDailyBudget)}</dd>
             </div>
+            <div>
+              <dt>오늘 경고 단계</dt>
+              <dd>{currentPlan.spendingStage.title}</dd>
+            </div>
           </dl>
 
           <p className="message-box message-box--hint">
             자동 계산은 월 수입에서 목표 저축액과 비상금을 먼저 제외한 뒤 남은 금액을 남은
-            일수로 나눠 계산합니다. 이월이 켜져 있으면 전날 남은 금액이 오늘 예산에 더해집니다.
+            일수로 나눠 계산합니다. 이월이 켜져 있으면 전날 남은 금액이 오늘 예산에 더해지고,
+            경고 단계는 최종 사용 가능 금액 대비 비율로만 판단합니다.
           </p>
         </section>
       </div>
