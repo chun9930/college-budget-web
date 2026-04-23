@@ -42,6 +42,7 @@
 - The daily log must be structured exactly with:
   1. `오늘 한 일` - 작업 내용, 검증, 특이사항
   2. `다음에 해야할 일`
+- 일일 로그의 `오늘 한 일`에는 해당 작업의 GitHub 커밋 해시와 커밋 메시지를 함께 적는다.
 
 ## 4-1. Documentation Sync Rule
 
