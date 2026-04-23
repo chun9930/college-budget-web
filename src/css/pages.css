@@ -87,6 +87,10 @@
   gap: 16px;
 }
 
+.expense-form--stacked {
+  gap: 16px;
+}
+
 .budget-form label,
 .expense-form label,
 .auth-form label {
@@ -123,6 +127,23 @@
   height: 18px;
   margin: 0;
   accent-color: #4f46e5;
+}
+
+.action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-row--compact {
+  margin-top: 6px;
+}
+
+.secondary-button {
+  border: 1px solid rgba(148, 163, 184, 0.45) !important;
+  background: rgba(248, 250, 252, 0.98) !important;
+  color: #334155 !important;
+  box-shadow: none !important;
 }
 
 .budget-form input,
@@ -327,6 +348,44 @@
 .record-card {
   display: grid;
   gap: 8px;
+}
+
+.template-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.template-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.template-card strong {
+  color: #0f172a;
+}
+
+.template-card__meta,
+.record-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.template-card__meta span,
+.record-badges span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(238, 242, 255, 0.92);
+  color: #4338ca;
+  font-size: 0.86rem;
+  font-weight: 600;
 }
 
 .record-card strong {

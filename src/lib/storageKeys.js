@@ -3,5 +3,6 @@ export const STORAGE_KEYS = {
   budgetAmount: 'budgetAmount',
   budgetSettings: 'budgetSettings',
   expenseRecords: 'expenseRecords',
+  expenseTemplates: 'expenseTemplates',
   loginState: 'loginState',
 };

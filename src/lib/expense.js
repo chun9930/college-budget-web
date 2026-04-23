@@ -1,7 +1,3 @@
-export function isValidExpenseAmount(amount) {
-  return Number.isFinite(Number(amount)) && Number(amount) > 0;
-}
-
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -20,17 +16,59 @@ function formatDate(value) {
   return `${year}-${month}-${day}`;
 }
 
-export function createExpenseRecord({ amount, category, date, memo = '' }) {
+function normalizeRecordType(recordType) {
+  const normalizedType = normalizeText(recordType);
+
+  if (normalizedType === '고정지출' || normalizedType === '정기지출') {
+    return normalizedType;
+  }
+
+  return '일반지출';
+}
+
+export function isValidExpenseAmount(amount) {
+  return Number.isFinite(Number(amount)) && Number(amount) > 0;
+}
+
+export function createExpenseRecord({
+  amount,
+  category,
+  date,
+  memo = '',
+  paymentMethod = '카드',
+  expenseType = '일반지출',
+}) {
   return {
     id: Date.now(),
     amount: Number(amount),
     category: normalizeText(category) || '기타',
     date: formatDate(date),
     memo: normalizeText(memo),
+    paymentMethod: normalizeText(paymentMethod) || '카드',
+    expenseType: normalizeRecordType(expenseType),
   };
 }
 
-export function summarizeExpenseRecords(records = [], categoryOrder = []) {
+export function createExpenseTemplate({
+  name,
+  amount,
+  category,
+  memo = '',
+  paymentMethod = '카드',
+  expenseType = '일반지출',
+}) {
+  return {
+    id: Date.now(),
+    name: normalizeText(name) || `${normalizeText(category) || '기타'} 템플릿`,
+    amount: Number(amount),
+    category: normalizeText(category) || '기타',
+    memo: normalizeText(memo),
+    paymentMethod: normalizeText(paymentMethod) || '카드',
+    expenseType: normalizeRecordType(expenseType),
+  };
+}
+
+export function summarizeRecordsByField(records = [], fieldName, order = []) {
   const summaryMap = new Map();
 
   for (const record of records) {
@@ -40,36 +78,39 @@ export function summarizeExpenseRecords(records = [], categoryOrder = []) {
       continue;
     }
 
-    const category = normalizeText(record?.category) || '기타';
-    const previous = summaryMap.get(category) ?? { category, amount: 0, recordCount: 0 };
+    const rawValue = normalizeText(record?.[fieldName]) || '기타';
+    const previous = summaryMap.get(rawValue) ?? { label: rawValue, amount: 0, recordCount: 0 };
 
-    summaryMap.set(category, {
-      category,
+    summaryMap.set(rawValue, {
+      label: rawValue,
       amount: previous.amount + amount,
       recordCount: previous.recordCount + 1,
     });
   }
 
-  const orderedCategories = [];
+  const orderedItems = [];
 
-  for (const category of categoryOrder) {
-    if (summaryMap.has(category)) {
-      orderedCategories.push(summaryMap.get(category));
-      summaryMap.delete(category);
+  for (const item of order) {
+    if (summaryMap.has(item)) {
+      orderedItems.push(summaryMap.get(item));
+      summaryMap.delete(item);
     }
   }
 
-  orderedCategories.push(...Array.from(summaryMap.values()));
+  orderedItems.push(...Array.from(summaryMap.values()));
 
-  const totalAmount = orderedCategories.reduce((total, item) => total + item.amount, 0);
-  const categories = orderedCategories.map((item) => ({
-    ...item,
-    percentage: totalAmount > 0 ? (item.amount / totalAmount) * 100 : 0,
-  }));
+  const totalAmount = orderedItems.reduce((total, item) => total + item.amount, 0);
 
   return {
     totalAmount,
     recordCount: records.length,
-    categories,
+    items: orderedItems.map((item) => ({
+      ...item,
+      percentage: totalAmount > 0 ? (item.amount / totalAmount) * 100 : 0,
+    })),
   };
+}
+
+export function summarizeExpenseRecords(records = [], categoryOrder = []) {
+  return summarizeRecordsByField(records, 'category', categoryOrder);
 }

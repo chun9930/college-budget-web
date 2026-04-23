@@ -1,4 +1,5 @@
 import { dummyExpenses } from '../data/dummyExpenses.js';
+import { dummyExpenseTemplates } from '../data/dummyExpenseTemplates.js';
 import { STORAGE_KEYS } from './storageKeys.js';
 
 function readValue(key, defaultValue) {
@@ -33,6 +34,32 @@ function sanitizeBudgetSettings(budgetSettings) {
   };
 }
 
+function normalizeExpenseRecord(expenseRecord) {
+  return {
+    id: expenseRecord?.id ?? Date.now(),
+    amount: sanitizeNumber(expenseRecord?.amount),
+    category: typeof expenseRecord?.category === 'string' ? expenseRecord.category : '기타',
+    date: typeof expenseRecord?.date === 'string' ? expenseRecord.date : '',
+    memo: typeof expenseRecord?.memo === 'string' ? expenseRecord.memo : '',
+    paymentMethod: typeof expenseRecord?.paymentMethod === 'string' ? expenseRecord.paymentMethod : '카드',
+    expenseType: typeof expenseRecord?.expenseType === 'string' ? expenseRecord.expenseType : '일반지출',
+  };
+}
+
+function normalizeExpenseTemplate(expenseTemplate) {
+  return {
+    id: expenseTemplate?.id ?? Date.now(),
+    name: typeof expenseTemplate?.name === 'string' ? expenseTemplate.name : '템플릿',
+    amount: sanitizeNumber(expenseTemplate?.amount),
+    category: typeof expenseTemplate?.category === 'string' ? expenseTemplate.category : '기타',
+    memo: typeof expenseTemplate?.memo === 'string' ? expenseTemplate.memo : '',
+    paymentMethod:
+      typeof expenseTemplate?.paymentMethod === 'string' ? expenseTemplate.paymentMethod : '카드',
+    expenseType:
+      typeof expenseTemplate?.expenseType === 'string' ? expenseTemplate.expenseType : '일반지출',
+  };
+}
+
 export function getMonthlyIncome() {
   return readValue(STORAGE_KEYS.monthlyIncome, 0);
 }
@@ -58,11 +85,14 @@ export function setBudgetSettings(budgetSettings) {
 }
 
 export function getExpenseRecords() {
-  return readValue(STORAGE_KEYS.expenseRecords, dummyExpenses);
+  return readValue(STORAGE_KEYS.expenseRecords, dummyExpenses).map(normalizeExpenseRecord);
 }
 
 export function setExpenseRecords(expenseRecords) {
-  writeValue(STORAGE_KEYS.expenseRecords, Array.isArray(expenseRecords) ? expenseRecords : []);
+  writeValue(
+    STORAGE_KEYS.expenseRecords,
+    Array.isArray(expenseRecords) ? expenseRecords.map(normalizeExpenseRecord) : [],
+  );
 }
 
 export function addExpenseRecord(expenseRecord) {
@@ -70,6 +100,31 @@ export function addExpenseRecord(expenseRecord) {
   const nextRecords = [expenseRecord, ...currentRecords];
   setExpenseRecords(nextRecords);
   return nextRecords;
+}
+
+export function getExpenseTemplates() {
+  return readValue(STORAGE_KEYS.expenseTemplates, dummyExpenseTemplates).map(normalizeExpenseTemplate);
+}
+
+export function setExpenseTemplates(expenseTemplates) {
+  writeValue(
+    STORAGE_KEYS.expenseTemplates,
+    Array.isArray(expenseTemplates) ? expenseTemplates.map(normalizeExpenseTemplate) : [],
+  );
+}
+
+export function addExpenseTemplate(expenseTemplate) {
+  const currentTemplates = getExpenseTemplates();
+  const nextTemplates = [expenseTemplate, ...currentTemplates];
+  setExpenseTemplates(nextTemplates);
+  return nextTemplates;
+}
+
+export function removeExpenseTemplate(templateId) {
+  const currentTemplates = getExpenseTemplates();
+  const nextTemplates = currentTemplates.filter((template) => template?.id !== templateId);
+  setExpenseTemplates(nextTemplates);
+  return nextTemplates;
 }
 
 export function getLoginState() {
