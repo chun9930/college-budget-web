@@ -1,0 +1,29 @@
+@import './css/layout.css';
+@import './css/pages.css';
+
+:root {
+  font-family: Arial, sans-serif;
+  color: #1f2933;
+  background-color: #f5f7fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}

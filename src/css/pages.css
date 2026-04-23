@@ -1,0 +1,174 @@
+.page-section {
+  padding: 24px;
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+  background-color: #ffffff;
+}
+
+.page-section h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.page-section h3 {
+  margin: 0 0 8px;
+}
+
+.page-section p {
+  margin: 0;
+  line-height: 1.6;
+  color: #52606d;
+}
+
+.page-section form {
+  display: grid;
+  gap: 8px;
+  max-width: 320px;
+  margin: 20px 0;
+}
+
+.page-section input,
+.page-section select,
+.page-section button {
+  padding: 8px 10px;
+  border: 1px solid #cbd2d9;
+  border-radius: 8px;
+}
+
+.page-section button {
+  cursor: pointer;
+  background: #ffffff;
+}
+
+.page-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.message-box {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #d9e2ec;
+  background: #f8fbff;
+}
+
+.message-box--success {
+  border-color: #b7e4c7;
+  background: #eefbf4;
+  color: #1f7a46;
+}
+
+.message-box--error {
+  border-color: #f5c2c7;
+  background: #fff4f4;
+  color: #b42318;
+}
+
+.message-box--warning {
+  border-color: #f7d39a;
+  background: #fff7ed;
+  color: #b26a00;
+}
+
+.summary-list {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0 0;
+}
+
+.summary-list div {
+  display: grid;
+  gap: 4px;
+}
+
+.summary-list dt {
+  color: #52606d;
+}
+
+.summary-list dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.stats-overview div,
+.stats-item {
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.stats-overview div {
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.stats-overview strong,
+.stats-item-header strong {
+  font-size: 0.95rem;
+}
+
+.stats-overview span {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.stats-list {
+  display: grid;
+  gap: 12px;
+}
+
+.stats-item {
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.stats-item-header,
+.stats-item-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.stats-item-header span,
+.stats-item-footer {
+  color: #52606d;
+}
+
+.stats-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: #d9e2ec;
+  overflow: hidden;
+}
+
+.stats-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #4c6fff;
+}
+
+.stats-empty,
+.empty-state {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fbff;
+  border: 1px dashed #cbd2d9;
+}
+
+.records-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+}

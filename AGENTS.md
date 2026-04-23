@@ -1,242 +1,298 @@
-## 1. 프로젝트 목적
+# AGENTS.md
 
-이 프로젝트는 대학생을 위한 생활지출 관리 웹 서비스이다.
+## 1. Reference Document
 
-핵심 목표:
-👉 “지금 이 소비를 해도 되는지”를 실시간으로 판단
-
-기존 가계부와의 차이:
-- 소비 기록 중심 ❌
-- 소비 판단 중심 ⭕
+- All tasks must follow the specifications defined in `PROJECT.md`.
 
 ---
 
-## 2. 프로젝트 구조
+## 2. AI Working Principles
 
-frontend/
-├─ public/
-├─ src/
-│  ├─ assets/
-│  ├─ pages/
-│  ├─ components/
-│  ├─ lib/
-│  ├─ css/
-│  ├─ App.jsx
-│  ├─ main.jsx
-│  └─ index.css
-├─ .env
-├─ package.json
-├─ vite.config.js
+1. Understand the overall structure first
+2. Check related files before making changes
+3. Propose a plan before implementation
+4. Apply minimal and precise modifications
+5. Write clear and understandable code
+6. Always include how to test the result
 
 ---
 
-## 3. 기술 스택
+## 3. Response Format
 
-- React (Vite)
-- JavaScript
-- HTML / CSS
+1. Goal
+2. Files
+3. Plan
+4. Code
+5. Test
+6. Risks
 
-### 제한
-
-- 백엔드 없음
-- DB 없음
-- 외부 API 없음
-
----
-
-## 4. 데이터 처리 방식
-
-- 기본: 더미 데이터
-- 상태 유지: localStorage 사용 가능
-
-### 규칙
-
-- localStorage 접근은 lib에서 관리
-- 키는 명확하게 정의
+- All task updates and final responses must be written in Korean.
 
 ---
 
-## 5. 로그인 기능 정의
+## 4. Definition of Done
 
-로그인 기능은 구현 가능하다.
+- The feature works as expected
+- Existing functionality is not broken
+- The result can be tested
+- After every completed task, 반드시 일일 로그를 작성한다.
+- 일일 로그는 `daily-log/YYYY-MM-DD.md`에 한국어로 작성한다.
+- 일일 로그 형식은 절대 변경하지 않는다.
+- The daily log must be structured exactly with:
+  1. `오늘 한 일` - 작업 내용, 검증, 특이사항
+  2. `다음에 해야할 일`
 
-### 허용
+## 4-1. Documentation Sync Rule
 
-- 로그인 UI
-- 더미 사용자 데이터
-- localStorage 기반 로그인 상태
-- 로그인/로그아웃 상태 관리
+If a task changes the actual implementation structure, routes, file names, storage keys, dummy data, or user-visible behavior, update only the relevant sections of `README.md` in the same step.
 
-### 금지
+Rules:
+- Only update the sections related to the change
+- Do not modify unrelated parts of `README.md`
+- Do not document features that are not implemented
+- Do not postpone `README.md` updates to later tasks
 
-- 서버 인증
-- JWT / OAuth
-- API 호출
-
-👉 로그인은 “UI 상태”이며 인증 시스템이 아니다.
-
----
-
-## 6. 핵심 기능 범위
-
-### 포함
-
-- 월 수입 입력
-- 하루 예산 계산
-- 지출 입력
-- 소비 가능 여부 판단
-- 경고 메시지
-- 지출 기록
-- 통계 (차트)
-
-### 제외
-
-- 금융 API
-- 투자 기능
-- AI 추천
+Every response must include:
+- Whether `README.md` was updated
+- Which sections were changed
 
 ---
 
-## 7. 핵심 로직
+## 5. Run Instructions
 
-- 하루 예산 = 남은 금액 / 남은 일수
-
-### 소비 판단
-
-- 예산 이하 → 가능
-- 초과 → 경고
-
-### 예외 처리
-
-- 빈 값
-- 음수
-- NaN
-- 남은 일수 0
+```bash
+npm install
+npm run dev
+```
 
 ---
 
-## 8. 차트 사용
+## 6. Skill Usage Rules (Strict + Safe)
 
-차트 라이브러리 사용 가능
+### 0. Core Principle
 
-- Chart.js 또는 Recharts 중 1개
-
-목적:
-- 소비 시각화
-
----
-
-## 9. AI 작업 원칙
-
-1. 구조 먼저 파악
-2. 관련 파일 확인
-3. 계획 먼저 제시
-4. 최소 수정
-5. 이해 가능한 코드 작성
-6. 테스트 방법 포함
+* Skills are NOT tools.
+* Skills are ROLE-BASED execution engines.
+* NEVER use multiple skills at the same time for the same task.
+* Treat AI-generated code as a draft, NOT as final truth.
+* Prefer minimal, understandable changes over large impressive changes.
 
 ---
 
-## 10. 코드 구조 규칙
+### 1. Process First (MANDATORY)
 
-- pages → 화면
-- components → UI
-- lib → 로직
+* Always use:
 
----
+  * brainstorming
+  * writing-plans
+    BEFORE any implementation.
 
-## 11. 더미 데이터 규칙
+Rules:
 
-- 별도 파일 분리
-- 컴포넌트 내부 하드코딩 금지
-
----
-
-## 12. UI/UX 원칙
-
-- 직관적
-- 빠른 판단 가능
-- 단순 UI
+* NEVER skip planning because of time pressure.
+* If the task feels large, break it into smaller steps instead of skipping process.
+* One task must have one clear goal only.
 
 ---
 
-## 13. 금지사항
+### 2. Implementation (frontend-skill ONLY)
 
-- 백엔드 코드
-- 서버 가정 코드
-- API 호출
-- 과도한 라이브러리 추가
+* Use ONLY:
 
----
+  * frontend-skill
 
-## 14. 답변 형식
+Rules:
 
-1. 목표
-2. 파일
-3. 계획
-4. 코드
-5. 테스트
-6. 리스크
+* Focus on "working functionality".
+* DO NOT optimize structure.
+* DO NOT apply design improvements.
+* DO NOT create custom hooks unless explicitly required.
+* DO NOT split components excessively (max 2 new components).
+* DO NOT expand scope just because additional improvements seem attractive.
+* Keep changes small enough that the developer can explain them directly.
 
 ---
 
-## 15. 완료 기준
+### 3. Code Review & Refactoring
 
-- 기능 동작
-- 기존 기능 유지
-- 테스트 가능
+Step 1: Review
 
----
+* Use:
 
-## 16. 구현 순서
+  * requesting-code-review
 
-1. 예산 계산
-2. 소비 판단
-3. 지출 입력
-4. 기록
-5. 차트
+Step 2: Refactor
 
----
+* Use:
 
-## 17. 실행
+  * vercel-react-best-practices
 
-npm install  
-npm run dev  
+Rules:
 
----
-
-## 18. 핵심 철학
-
-👉 이 프로젝트는 기록이 아니라 판단 시스템이다
+* NEVER refactor without review.
+* ONLY fix issues identified in review.
+* DO NOT introduce new abstraction layers.
+* DO NOT over-engineer.
+* Keep code understandable for beginners.
+* Limit component splitting (max 2 additional components).
+* DO NOT refactor unrelated areas.
+* If the developer cannot explain the new structure, the refactor is too complex.
+* Prefer modifying existing code over generating large new structures.
 
 ---
 
-## 19. 변경 및 수정이 쉬운 구조 원칙
+### 4. UI / Design
 
-이 프로젝트의 코드는 추후 수정 및 변경 요청이 쉽게 가능하도록 작성한다.
+* Use:
 
-### 원칙
+  * frontend-design
 
-- 꼭 강제해야 하는 구조나 상황이 아니라면 과도한 고정 구조를 지양한다.
-- 지금 당장 동작하는 코드만이 아니라, 이후 부분 수정이 쉬운 구조를 우선한다.
-- 로고, 이미지, 텍스트, 색상, 버튼 문구, 경고 메시지, 카테고리, 섹션 순서 등 자주 바뀔 수 있는 요소는 하드코딩을 최소화한다.
-- 수정 가능성이 높은 값은 props, 상수, 데이터 객체, 별도 파일 분리 등으로 관리한다.
-- 컴포넌트는 교체와 재사용이 가능하도록 적절히 분리한다.
-- 계산 로직, UI, 저장 로직, 표시용 데이터는 가능한 범위 내에서 분리한다.
-- 단, 불필요한 추상화나 과도한 설계는 지양하고 초보자도 이해 가능한 구조를 유지한다.
+Rules:
 
----
-
-### 예시
-
-- 로고 이미지 경로를 컴포넌트 내부에 직접 박아넣기보다 props 또는 상수로 분리
-- 안내 문구를 JSX에 반복 하드코딩하기보다 배열 데이터로 관리
-- 카드 UI를 각각 따로 복붙하기보다 공통 컴포넌트로 분리
-- localStorage key와 기본 설정값을 한 곳에서 관리
+* Apply ONLY after functionality is complete.
+* DO NOT change logic.
+* DO NOT modify state management.
+* Use minimal styling only.
+* Avoid animations and complex UI effects.
+* Prioritize readability over aesthetics.
+* DO NOT redesign screens just to make them look more advanced.
+* Keep the UI appropriate for a university project/demo.
 
 ---
 
-## 20. UI/UX 추가 규칙
+### 5. Testing
 
-- UI/UX 관련 결정은 반드시 `web-design-guidelines`를 먼저 참고한 뒤 진행한다.
-- 화면 구조, 여백, 계층, 피드백, 접근성을 바꾸는 경우에는 가이드라인과 맞는지 확인한다.
+* Use:
+
+  * test-driven-development
+
+Rules:
+
+* Write failing tests first.
+* Implement minimal code to pass.
+* DO NOT over-test trivial UI elements.
+* DO NOT skip validation just because the feature "looks correct".
+* After each important change, verify the main user flow manually or with tests.
+
+---
+
+### 6. Debugging
+
+* Use:
+
+  * systematic-debugging
+
+Rules:
+
+* ALWAYS find root cause first.
+* NEVER patch blindly.
+* Reproduce issue before fixing.
+* Validate after fix.
+* DO NOT jump to code changes before gathering evidence.
+* If repeated quick fixes fail, stop and re-check the architecture or assumptions.
+
+---
+
+### 7. Git Workflow
+
+#### Parallel Work
+
+* using-git-worktrees
+
+Rules:
+
+* Separate features into isolated workspaces.
+* DO NOT mix multiple features in one branch.
+
+#### Branch Completion
+
+* finishing-a-development-branch
+
+Rules:
+
+* DO NOT merge without passing tests.
+* Verify functionality before completion.
+* DO NOT close a branch based on assumption alone.
+
+#### Commit
+
+* git-commit
+
+Rules:
+
+* Use Conventional Commit format:
+
+  * feat:
+  * fix:
+  * refactor:
+  * docs:
+  * test:
+* Keep commits small and meaningful.
+* DO NOT create vague commits such as "update", "change", or "fix stuff".
+
+---
+
+### 8. Anti-Risk Controls (Critical)
+
+#### A. Prevent rule-breaking by greed
+
+* DO NOT add extra improvements outside the current step goal.
+* DO NOT say "while I'm here, I'll also..." and expand scope.
+* Finish the current step, verify it, then move to the next step.
+
+#### B. Prevent over-automation
+
+* AI-generated code must always be reviewed before acceptance.
+* DO NOT copy large generated code blocks blindly.
+* DO NOT accept patterns, abstractions, hooks, or utilities that the developer cannot explain.
+* Prefer existing project structure and style over auto-generated novelty.
+
+#### C. Prevent skipped steps
+
+* DO NOT skip brainstorming/writing-plans before implementation.
+* DO NOT skip review before refactoring.
+* DO NOT skip debugging process before bug fixing.
+* DO NOT skip test/verification before branch completion.
+* Fast delivery must come from smaller safe steps, NOT from skipping required steps.
+
+---
+
+### 9. Absolute Safety Rules (Critical)
+
+❌ NEVER:
+
+* Use multiple skills simultaneously.
+* Mix implementation + refactoring + design in one step.
+* Refactor without review.
+* Apply design changes during logic implementation.
+* Introduce unnecessary abstraction.
+* Modify working code without clear reason.
+* Accept AI output without understanding it.
+* Skip required process steps because of urgency.
+
+✅ ALWAYS:
+
+* Solve ONE problem at a time.
+* Follow step-by-step execution.
+* Verify each step before moving forward.
+* Ensure code is explainable by the developer.
+* Keep the project maintainable for a beginner university student.
+* Prefer simple, correct, explainable code over advanced-looking code.
+
+---
+
+### 10. QA Execution Flow (Mandatory)
+
+For any non-trivial task, follow this order:
+
+1. writing-plans
+2. test-driven-development
+3. implementation
+4. requesting-code-review
+5. systematic-debugging (if issues appear)
+6. finishing-a-development-branch
+
+Rules:
+- DO NOT skip a previous step unless the task is truly trivial.
+- DO NOT move to branch completion before verification is done.
+- QA is considered complete only when tests, review, debugging checks, and completion checks are all satisfied.
